@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 import android.graphics.Color;
 
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.ColorSensor;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -23,7 +24,7 @@ public class Hardware {
     public DcMotor br = null; // Back Right motor
 
     // Cube Manipulator
-    public Servo   axis  = null; // Axis servo
+    public CRServo axis  = null; // Axis servo
     public Servo   ul    = null; // Upper Left servo
     public Servo   ur    = null; // Upper Right servo
     public Servo   ll    = null; // Lower Left servo
@@ -57,7 +58,7 @@ public class Hardware {
         bl = hwMap.dcMotor.get("BL");
 
         // Define and Initialize Cube Manipulator
-        axis  = hwMap.servo.get("AXIS");
+        axis  = hwMap.crservo.get("AXIS");
         ul    = hwMap.servo.get("UL");
         ur    = hwMap.servo.get("UR");
         ll    = hwMap.servo.get("LL");
@@ -74,6 +75,10 @@ public class Hardware {
         fl.setPower(0);
         br.setPower(0);
         bl.setPower(0);
+
+        // Set axis motor power
+        axis.setDirection(DcMotorSimple.Direction.FORWARD);
+        axis.setPower(0);
 
         // Set drivetrain motors to run without encoders.
         fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -133,8 +138,53 @@ public class Hardware {
         bl.setPower(blpwr);
     }
 
-    public void cubeManipulator() {
-        boolean inverted = axis.getPosition() > 200 ? true : false;
+    /*
+    public void bottomGrip() {
+        boolean inverted = axis.() > 200 ? true : false;
+        int x = 0; // Placeholder for postion
+        if(inverted) {
+            ul.setPosition(x);
+            ur.setPosition(x);
+        }
+    }
+    */
+
+    private boolean isTopOpen = true;
+    public void toggleTop() {
+        if (isTopOpen){
+            //ul.setPosition();
+        }
+        else {
+
+        }
+        isTopOpen = !isTopOpen;
+    }
+
+    public void normalizeServo(Servo servo, double position) {
+        if(servo==ul || servo==ll){
+            servo.setPosition(position);
+        }
+        else {
+            servo.setPosition(1-position);
+        }
+    }
+
+    // Sets servos to "natural" position
+    public void naturalServo() {
+        normalizeServo(ul, 0.7);
+        normalizeServo(ur, 0.7);
+        normalizeServo(ll, 0.7);
+        normalizeServo(lr, 0.7);
+    }
+
+    public void testServo() {
+        ul.setPosition(0);
+        sleep(200);
+        ur.setPosition(0);
+        sleep(200);
+        ll.setPosition(0);
+        sleep(200);
+        lr.setPosition(1);
     }
 
     public void jewelManipulator() {}
