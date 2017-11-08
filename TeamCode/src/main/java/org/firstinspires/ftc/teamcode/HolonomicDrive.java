@@ -23,11 +23,9 @@ public class HolonomicDrive extends OpMode {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
-
         // Set Cube Manipulator to starting values
-        //robot.naturalServo();
-        robot.axis.setPower(0);
-
+        robot.naturalServo();
+        robot.axis.setPosition(0.036);
         // Send telemetry message to signify robot waiting;
         //telemetry.addData("Test", "Foo Bar Fizz Buzz Xyzzy");
     }
@@ -44,7 +42,6 @@ public class HolonomicDrive extends OpMode {
      */
     @Override
     public void start() {
-        robot.axis.setPower(1);
     }
 
     /*
@@ -53,8 +50,10 @@ public class HolonomicDrive extends OpMode {
     @Override
     public void loop() {
         drive();
-        //grip();
-        //telemetry.addData("Axis: ", robot.axis.getPosition());
+        spin();
+        grip();
+        slide();
+        telemetry.addData("Axis: ", robot.axis.getPosition());
         telemetry.addData("Upper Left: ", robot.ul.getPosition());
         telemetry.addData("Upper Right: ", robot.ur.getPosition());
         telemetry.addData("Lower Left: ", robot.ll.getPosition());
@@ -86,15 +85,62 @@ public class HolonomicDrive extends OpMode {
         }
         robot.drive(dir, 1);
     }
-    /*public void grip() {
-        if(gamepad1.a) {
-            robot.bottomGrip();
-        }
-        else if(gamepad1.y) {
-            // Release top
-        }
 
-    }*/
+    public void spin() {
+        double pos = 0.036;
+        if(gamepad1.a) {
+            robot.axis.setPosition(pos);
+        }
+        else if(gamepad1.b) {
+            robot.axis.setPosition(pos+0.06);
+        }
+    }
+
+    // Set button activity to false
+    boolean xActive = false;
+    boolean yActive = false;
+
+    // Set previous and current state of button
+    boolean xPrevState = false;
+    boolean yPrevState = false;
+
+    public void grip() {
+
+        // Check the status of the buttons
+        boolean xCurrState = gamepad2.x;
+        boolean yCurrState = gamepad2.y;
+
+        // Check for button state transitions.
+        if ((xCurrState == true) && (xCurrState != xPrevState))  {
+            // Button is transitioning to a pressed state
+            xActive = !xActive;
+            if (xActive == true) {
+                robot.bottomGrip(true);
+            } else {
+                robot.bottomGrip(false);
+            }
+        } else if ((yCurrState == true) && (yCurrState != yPrevState)) {
+            // Button is transitioning to a pressed state
+            yActive = !yActive;
+            if (yActive == true) {
+                robot.topGrip(true);
+            } else {
+                robot.topGrip(false);
+            }
+        }
+        xPrevState = xCurrState;
+        yPrevState = yCurrState;
+    }
+
+    public void slide() {
+        if(gamepad2.right_bumper) {
+            robot.slide.setPower(0.8);
+        } else if(gamepad2.left_bumper) {
+            robot.slide.setPower(-0.5);
+        } else {
+            robot.slide.setPower(0);
+        }
+    }
 
     /*
      * Code to run ONCE after the driver hits STOP

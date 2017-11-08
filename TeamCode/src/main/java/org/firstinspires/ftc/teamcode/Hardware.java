@@ -24,7 +24,8 @@ public class Hardware {
     public DcMotor br = null; // Back Right motor
 
     // Cube Manipulator
-    public CRServo axis  = null; // Axis servo
+    public Servo axis  = null; // Axis servo
+    public Servo   test  = null; // Test Servo
     public Servo   ul    = null; // Upper Left servo
     public Servo   ur    = null; // Upper Right servo
     public Servo   ll    = null; // Lower Left servo
@@ -58,7 +59,8 @@ public class Hardware {
         bl = hwMap.dcMotor.get("BL");
 
         // Define and Initialize Cube Manipulator
-        axis  = hwMap.crservo.get("AXIS");
+        axis  = hwMap.servo.get("AXIS");
+        test  = hwMap.servo.get("test");
         ul    = hwMap.servo.get("UL");
         ur    = hwMap.servo.get("UR");
         ll    = hwMap.servo.get("LL");
@@ -75,10 +77,6 @@ public class Hardware {
         fl.setPower(0);
         br.setPower(0);
         bl.setPower(0);
-
-        // Set axis motor power
-        axis.setDirection(DcMotorSimple.Direction.FORWARD);
-        axis.setPower(0);
 
         // Set drivetrain motors to run without encoders.
         fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
@@ -138,28 +136,7 @@ public class Hardware {
         bl.setPower(blpwr);
     }
 
-    /*
-    public void bottomGrip() {
-        boolean inverted = axis.() > 200 ? true : false;
-        int x = 0; // Placeholder for postion
-        if(inverted) {
-            ul.setPosition(x);
-            ur.setPosition(x);
-        }
-    }
-    */
-
-    private boolean isTopOpen = true;
-    public void toggleTop() {
-        if (isTopOpen){
-            //ul.setPosition();
-        }
-        else {
-
-        }
-        isTopOpen = !isTopOpen;
-    }
-
+    // Sets servos to go to mirrored position
     public void normalizeServo(Servo servo, double position) {
         if(servo==ul || servo==ll){
             servo.setPosition(position);
@@ -169,22 +146,56 @@ public class Hardware {
         }
     }
 
-    // Sets servos to "natural" position
-    public void naturalServo() {
-        normalizeServo(ul, 0.7);
-        normalizeServo(ur, 0.7);
-        normalizeServo(ll, 0.7);
-        normalizeServo(lr, 0.7);
+    // Grip from RELATIVE bottom of cube manipulator
+    public void bottomGrip(boolean active) {
+        boolean inverted = axis.getPosition() > 0.06 ? true : false;
+        if(active==true) {
+            if(inverted) {
+                normalizeServo(ul,0.02);
+                normalizeServo(ur,0.02);
+            } else {
+                normalizeServo(ll,0.02);
+                normalizeServo(lr,0.02);
+            }
+        } else if(active==false) {
+            if(inverted) {
+                normalizeServo(ul,0.5);
+                normalizeServo(ur,0.5);
+            } else {
+                normalizeServo(ll,0.5);
+                normalizeServo(lr,0.5);
+            }
+        }
     }
 
-    public void testServo() {
-        ul.setPosition(0);
-        sleep(200);
-        ur.setPosition(0);
-        sleep(200);
-        ll.setPosition(0);
-        sleep(200);
-        lr.setPosition(1);
+    // Grip from RELATIVE top of cube manipulator
+    public void topGrip(boolean active) {
+        boolean inverted = axis.getPosition() > 0.06 ? true : false;
+        if(active==true) {
+            if(inverted) {
+                normalizeServo(ll,0.03);
+                normalizeServo(lr,0.03);
+            } else {
+                normalizeServo(ul,0.03);
+                normalizeServo(ur,0.03);
+            }
+        } else if(active==false) {
+            if(inverted) {
+                normalizeServo(lr,0.5);
+                normalizeServo(ll,0.5);
+            } else {
+                normalizeServo(ul,0.5);
+                normalizeServo(ur,0.5);
+            }
+        }
+    }
+
+    // Sets servos to "natural" position
+    public void naturalServo() {
+        normalizeServo(ul, 0.5);
+        normalizeServo(ur, 0.5);
+        normalizeServo(ll, 0.5);
+        normalizeServo(lr, 0.5);
     }
 
     public void jewelManipulator() {}
