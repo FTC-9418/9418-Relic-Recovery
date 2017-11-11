@@ -23,11 +23,8 @@ public class HolonomicDrive extends OpMode {
          * The init() method of the hardware class does all the work here
          */
         robot.init(hardwareMap);
-        // Set Cube Manipulator to starting values
+        // Set servos to starting values
         robot.naturalServo();
-        robot.axis.setPosition(0.036);
-        // Send telemetry message to signify robot waiting;
-        //telemetry.addData("Test", "Foo Bar Fizz Buzz Xyzzy");
     }
 
     /*
@@ -53,10 +50,13 @@ public class HolonomicDrive extends OpMode {
         spin();
         grip();
         slide();
-        telemetry.addData("Axis: ", robot.axis.getPosition());
-        telemetry.addData("Upper Left: ", robot.ul.getPosition());
+        slideWinch();
+        slideGrab();
+        slideRotate();
+        telemetry.addData("Axis: ",        robot.axis.getPosition());
+        telemetry.addData("Upper Left: ",  robot.ul.getPosition());
         telemetry.addData("Upper Right: ", robot.ur.getPosition());
-        telemetry.addData("Lower Left: ", robot.ll.getPosition());
+        telemetry.addData("Lower Left: ",  robot.ll.getPosition());
         telemetry.addData("Lower Right: ", robot.lr.getPosition());
     }
 
@@ -88,11 +88,11 @@ public class HolonomicDrive extends OpMode {
 
     public void spin() {
         double pos = 0.036;
-        if(gamepad1.a) {
+        if(gamepad2.a) {
             robot.axis.setPosition(pos);
         }
-        else if(gamepad1.b) {
-            robot.axis.setPosition(pos+0.06);
+        else if(gamepad2.b) {
+            robot.axis.setPosition(pos+0.065);
         }
     }
 
@@ -133,12 +133,38 @@ public class HolonomicDrive extends OpMode {
     }
 
     public void slide() {
-        if(gamepad2.right_bumper) {
+        if (gamepad2.right_bumper) {
             robot.slide.setPower(0.8);
-        } else if(gamepad2.left_bumper) {
+        } else if (gamepad2.left_bumper) {
             robot.slide.setPower(-0.5);
         } else {
             robot.slide.setPower(0);
+        }
+    }
+
+    public void slideWinch() {
+        if(gamepad2.start) {
+            robot.sw.setPower(-1);
+        } else if(gamepad2.back) {
+            robot.sw.setPower(1);
+        } else {
+            robot.sw.setPower(0);
+        }
+    }
+
+    public void slideGrab() {
+        if(gamepad2.right_trigger > 0.5) {
+            robot.sg.setPosition(0.7);
+        } else {
+            robot.sg.setPosition(0);
+        }
+    }
+
+    public void slideRotate() {
+        if(gamepad2.left_trigger > 0.5) {
+            robot.sr.setPosition(0.7);
+        } else {
+            robot.sr.setPosition(0);
         }
     }
 

@@ -24,7 +24,7 @@ public class Hardware {
     public DcMotor br = null; // Back Right motor
 
     // Cube Manipulator
-    public Servo axis  = null; // Axis servo
+    public Servo   axis  = null; // Axis servo
     public Servo   test  = null; // Test Servo
     public Servo   ul    = null; // Upper Left servo
     public Servo   ur    = null; // Upper Right servo
@@ -33,11 +33,16 @@ public class Hardware {
     public DcMotor slide = null; // Linear Slide motor
 
     // Jewel Manipulator
-    public Servo sTs  = null;     // Side to Side servo
-    public Servo fTb  = null;     // Front to Back servo
-    public ColorSensor cs = null; // Color Sensor
+    public Servo       sTs = null; // Side to Side servo
+    public Servo       fTb = null; // Front to Back servo
+    public ColorSensor cs  = null; // Color Sensor
 
-    /* local OpMode members. */
+    // Linear Slide
+    public DcMotor sw = null; // Slide Winch
+    public Servo   sg = null; // Slide Grabber
+    public Servo   sr = null; // Slide Rotation
+
+    /* local OpMode members */
     HardwareMap hwMap           =  null;
     private ElapsedTime period  =  new ElapsedTime();
 
@@ -60,29 +65,37 @@ public class Hardware {
 
         // Define and Initialize Cube Manipulator
         axis  = hwMap.servo.get("AXIS");
-        test  = hwMap.servo.get("test");
         ul    = hwMap.servo.get("UL");
         ur    = hwMap.servo.get("UR");
         ll    = hwMap.servo.get("LL");
         lr    = hwMap.servo.get("LR");
         slide = hwMap.dcMotor.get("SLIDE");
 
+        // Define and Initialize Linear Slide
+        sw = hwMap.dcMotor.get("SW");
+        sg = hwMap.servo.get("SG");
+        sr = hwMap.servo.get("SR");
+
         // Jewel Manipulator
         sTs = hwMap.servo.get("STS");
         fTb = hwMap.servo.get("FTB");
-        //cs  = hwMap.colorSensor.get("cs");
+        cs  = hwMap.colorSensor.get("CS");
 
         // Set all motors to zero power
         fr.setPower(0);
         fl.setPower(0);
         br.setPower(0);
         bl.setPower(0);
+        slide.setPower(0);
+        sw.setPower(0);
 
-        // Set drivetrain motors to run without encoders.
+        // Set motors to run without encoders.
         fr.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         fl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         br.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
         bl.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        slide.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        sw.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Set motor direction
         fr.setDirection(DcMotor.Direction.FORWARD);
@@ -159,11 +172,11 @@ public class Hardware {
             }
         } else if(active==false) {
             if(inverted) {
-                normalizeServo(ul,0.5);
-                normalizeServo(ur,0.5);
+                normalizeServo(ul,0.2);
+                normalizeServo(ur,0.2);
             } else {
-                normalizeServo(ll,0.5);
-                normalizeServo(lr,0.5);
+                normalizeServo(ll,0.2);
+                normalizeServo(lr,0.2);
             }
         }
     }
@@ -181,24 +194,36 @@ public class Hardware {
             }
         } else if(active==false) {
             if(inverted) {
-                normalizeServo(lr,0.5);
-                normalizeServo(ll,0.5);
+                normalizeServo(lr,0.2);
+                normalizeServo(ll,0.2);
             } else {
-                normalizeServo(ul,0.5);
-                normalizeServo(ur,0.5);
+                normalizeServo(ul,0.2);
+                normalizeServo(ur,0.2);
             }
         }
     }
 
     // Sets servos to "natural" position
     public void naturalServo() {
-        normalizeServo(ul, 0.5);
-        normalizeServo(ur, 0.5);
-        normalizeServo(ll, 0.5);
-        normalizeServo(lr, 0.5);
+        // Set 0 position of cube manipulator servos
+        normalizeServo(ul, 0.53);
+        normalizeServo(ur, 0.53);
+        normalizeServo(ll, 0.53);
+        normalizeServo(lr, 0.53);
+        axis.setPosition(0.036);
+
+        // Set 0 position of jewel manipulator servos
+        fTb.setPosition(0.39); // 0 position
+        sTs.setPosition(0.4); // 0 position
     }
 
-    public void jewelManipulator() {}
+    public void hitRedJewel() {
+        fTb.setPosition(0.7);
+    }
+
+    public void hitBlueJewel() {
+        fTb.setPosition(-0.7);
+    }
     /***
      *
      * waitForTick implements a periodic delay. However, this acts like a metronome with a regular
