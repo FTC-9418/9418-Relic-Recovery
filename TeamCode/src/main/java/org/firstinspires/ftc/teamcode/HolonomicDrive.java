@@ -24,7 +24,7 @@ public class HolonomicDrive extends OpMode {
          */
         robot.init(hardwareMap);
         // Set servos to starting values
-        robot.naturalServo();
+        robot.startServo();
     }
 
     /*
@@ -39,6 +39,7 @@ public class HolonomicDrive extends OpMode {
      */
     @Override
     public void start() {
+        robot.naturalServo();
     }
 
     /*
@@ -46,6 +47,7 @@ public class HolonomicDrive extends OpMode {
      */
     @Override
     public void loop() {
+        setSpeed();
         drive();
         spin();
         grip();
@@ -60,45 +62,60 @@ public class HolonomicDrive extends OpMode {
         telemetry.addData("Lower Right: ", robot.lr.getPosition());
     }
 
+    double pwrRatio = 0.5;
+
+    public void setSpeed() {
+        if(gamepad1.a) {
+            pwrRatio = 0.9;
+        } else if(gamepad1.b) {
+            pwrRatio = 0.5;
+        }
+    }
+
     public void drive() {
         double x = gamepad1.left_stick_x;
         double y = -gamepad1.left_stick_y;
         double z = -gamepad1.right_stick_x;
 
         int dir = Hardware.Direction_Stop;
-        if(y >= 0.5) {
+        if(y >= 0.2) {
             dir |= Hardware.Direction_Forward;
-        } else if(y <= -0.5) {
+        } else if(y <= -0.2) {
             dir |= Hardware.Direction_Reverse;
         }
-        if(x >= 0.5) {
+        if(x >= 0.2) {
             dir |= Hardware.Direction_Right;
-        } else if(x <= -0.5) {
+        } else if(x <= -0.2) {
             dir |= Hardware.Direction_Left;
         }
         if(dir == Hardware.Direction_Stop) {
-            if(z >= 0.5) {
+            if(z >= 0.2) {
                 dir |= Hardware.Direction_RotateRight;
-            } else if(z <= -0.5) {
+            } else if(z <= -0.2) {
                 dir |= Hardware.Direction_RotateLeft;
             }
         }
-        robot.drive(dir, 1);
+        double pwr = Math.max(Math.max(Math.abs(x), Math.abs(y)), Math.abs(z));
+        pwr *= pwrRatio;
+        robot.drive(dir, pwr*pwr);
     }
 
     public void spin() {
-        double pos = 0.036;
+        double home = robot.NeutralAxisPos;
+        double inverted = 0.121;
+
         if(gamepad2.a) {
-            robot.axis.setPosition(pos);
-        }
-        else if(gamepad2.b) {
-            robot.axis.setPosition(pos+0.065);
+            robot.axis.setPosition(home);
+        } else if(gamepad2.b) {
+            robot.axis.setPosition(inverted * 1.7);
+            robot.sleep(750);
+            robot.axis.setPosition(inverted);
         }
     }
 
     // Set button activity to false
-    boolean xActive = false;
-    boolean yActive = false;
+    boolean xActive   = false;
+    boolean yActive   = false;
 
     // Set previous and current state of button
     boolean xPrevState = false;
@@ -107,26 +124,35 @@ public class HolonomicDrive extends OpMode {
     public void grip() {
 
         // Check the status of the buttons
-        boolean xCurrState = gamepad2.x;
-        boolean yCurrState = gamepad2.y;
+        boolean xCurrState = gamepad2.x;           // X current state
+        boolean yCurrState = gamepad2.y;           // Y current state
+        boolean dpUCurrState = gamepad2.dpad_up;   // dpad Up current state
+        boolean dpDCurrState = gamepad2.dpad_down; // dpad Down current state
 
-        // Check for button state transitions.
+        // Check for button state transitions
+        // Opens cube manipulator grippers wider
         if ((xCurrState == true) && (xCurrState != xPrevState))  {
             // Button is transitioning to a pressed state
             xActive = !xActive;
             if (xActive == true) {
-                robot.bottomGrip(true);
+                robot.bottomGrip(true, 0.2);
             } else {
-                robot.bottomGrip(false);
+                robot.bottomGrip(false, 0.2);
             }
         } else if ((yCurrState == true) && (yCurrState != yPrevState)) {
             // Button is transitioning to a pressed state
             yActive = !yActive;
             if (yActive == true) {
-                robot.topGrip(true);
+                robot.topGrip(true, 0.2);
             } else {
-                robot.topGrip(false);
+                robot.topGrip(false, 0.2);
             }
+        } else if (dpUCurrState == true) {
+            yActive = false;
+            robot.topGrip(false, 0.4);
+        } else if (dpDCurrState == true) {
+            xActive = false;
+            robot.bottomGrip(false, 0.4);
         }
         xPrevState = xCurrState;
         yPrevState = yCurrState;
@@ -143,9 +169,9 @@ public class HolonomicDrive extends OpMode {
     }
 
     public void slideWinch() {
-        if(gamepad2.start) {
+        if(gamepad2.dpad_right) {
             robot.sw.setPower(-1);
-        } else if(gamepad2.back) {
+        } else if(gamepad2.dpad_left) {
             robot.sw.setPower(1);
         } else {
             robot.sw.setPower(0);
@@ -154,17 +180,17 @@ public class HolonomicDrive extends OpMode {
 
     public void slideGrab() {
         if(gamepad2.right_trigger > 0.5) {
-            robot.sg.setPosition(0.7);
+            robot.sg.setPosition(robot.SlideGrabPos);
         } else {
-            robot.sg.setPosition(0);
+            robot.sg.setPosition(robot.NeutralSlideGrabPos);
         }
     }
 
     public void slideRotate() {
         if(gamepad2.left_trigger > 0.5) {
-            robot.sr.setPosition(0.7);
+            robot.sr.setPosition(robot.SlideRotatePos);
         } else {
-            robot.sr.setPosition(0);
+            robot.sr.setPosition(robot.NeutralSlideRotatePos);
         }
     }
 

@@ -33,8 +33,8 @@ public class Hardware {
     public DcMotor slide = null; // Linear Slide motor
 
     // Jewel Manipulator
-    public Servo       sTs = null; // Side to Side servo
-    public Servo       fTb = null; // Front to Back servo
+    public Servo       sTs = null; // Side to Side servo (Moves sTs relative to robot front)
+    public Servo       fTb = null; // Front to Back servo (Moves fTb relative to robot front)
     public ColorSensor cs  = null; // Color Sensor
 
     // Linear Slide
@@ -103,6 +103,8 @@ public class Hardware {
         br.setDirection(DcMotor.Direction.FORWARD);
         bl.setDirection(DcMotor.Direction.REVERSE);
 
+        // Set color sensor light to on
+        cs.enableLed(true);
     }
 
     //  Rotate, Left, Right, Back, Forward
@@ -160,70 +162,102 @@ public class Hardware {
     }
 
     // Grip from RELATIVE bottom of cube manipulator
-    public void bottomGrip(boolean active) {
+    public void bottomGrip(boolean active, double pos) {
         boolean inverted = axis.getPosition() > 0.06 ? true : false;
         if(active==true) {
             if(inverted) {
-                normalizeServo(ul,0.02);
-                normalizeServo(ur,0.02);
+                normalizeServo(ul,0.01);
+                normalizeServo(ur,0.01);
             } else {
-                normalizeServo(ll,0.02);
-                normalizeServo(lr,0.02);
+                normalizeServo(ll,0.01);
+                normalizeServo(lr,0.01);
             }
         } else if(active==false) {
             if(inverted) {
-                normalizeServo(ul,0.2);
-                normalizeServo(ur,0.2);
+                normalizeServo(ul,pos);
+                normalizeServo(ur,pos);
             } else {
-                normalizeServo(ll,0.2);
-                normalizeServo(lr,0.2);
+                normalizeServo(ll,pos);
+                normalizeServo(lr,pos);
             }
         }
     }
 
     // Grip from RELATIVE top of cube manipulator
-    public void topGrip(boolean active) {
+    public void topGrip(boolean active, double pos) {
         boolean inverted = axis.getPosition() > 0.06 ? true : false;
         if(active==true) {
             if(inverted) {
-                normalizeServo(ll,0.03);
-                normalizeServo(lr,0.03);
+                normalizeServo(ll,0.01);
+                normalizeServo(lr,0.01);
             } else {
-                normalizeServo(ul,0.03);
-                normalizeServo(ur,0.03);
+                normalizeServo(ul,0.01);
+                normalizeServo(ur,0.01);
             }
         } else if(active==false) {
             if(inverted) {
-                normalizeServo(lr,0.2);
-                normalizeServo(ll,0.2);
+                normalizeServo(lr,pos);
+                normalizeServo(ll,pos);
             } else {
-                normalizeServo(ul,0.2);
-                normalizeServo(ur,0.2);
+                normalizeServo(ul,pos);
+                normalizeServo(ur,pos);
             }
         }
+    }
+
+    public final double NeutralAxisPos = 0.052;
+    public final double NeutralSlideGrabPos = 1.0;
+    public final double SlideGrabPos = 0.5;
+    public final double NeutralSlideRotatePos = 1.0;
+    public final double SlideRotatePos = 0.3;
+
+    // Sets servos to start position
+    public void startServo() {
+        // Set 0 position of cube manipulator servos
+        normalizeServo(ul, 0.7);
+        normalizeServo(ur, 0.65);
+        normalizeServo(ll, 0.65);
+        normalizeServo(lr, 0.7);
+        axis.setPosition(NeutralAxisPos);
+
+        // Set 0 position of jewel manipulator servos
+        fTb.setPosition(0.39); // 0 position
+        sTs.setPosition(0.63); // 0 position
+
+        sg.setPosition(NeutralSlideGrabPos);
+        sr.setPosition(NeutralSlideRotatePos);
     }
 
     // Sets servos to "natural" position
     public void naturalServo() {
         // Set 0 position of cube manipulator servos
         normalizeServo(ul, 0.53);
-        normalizeServo(ur, 0.53);
-        normalizeServo(ll, 0.53);
+        normalizeServo(ur, 0.43);
+        normalizeServo(ll, 0.43);
         normalizeServo(lr, 0.53);
-        axis.setPosition(0.036);
+        axis.setPosition(NeutralAxisPos);
 
-        // Set 0 position of jewel manipulator servos
-        fTb.setPosition(0.39); // 0 position
-        sTs.setPosition(0.4); // 0 position
+        sg.setPosition(NeutralSlideGrabPos);
+        sr.setPosition(NeutralSlideRotatePos);
     }
 
-    public void hitRedJewel() {
-        fTb.setPosition(0.7);
+    public void stepServo(Servo servo, double endpoint) {
+        double currPos = servo.getPosition();
+        if(Double.isNaN(currPos)) {
+            servo.setPosition(endpoint);
+            return;
+        }
+        double delta = (endpoint - currPos)/10;
+        for(int i=0; i<10; i++) {
+            servo.setPosition(clip(currPos + (delta*i)));
+            sleep(100);
+        }
     }
 
-    public void hitBlueJewel() {
-        fTb.setPosition(-0.7);
+    public double clip(double pos) {
+        return Math.max(Math.min(pos, 1.0), 0);
     }
+
     /***
      *
      * waitForTick implements a periodic delay. However, this acts like a metronome with a regular
