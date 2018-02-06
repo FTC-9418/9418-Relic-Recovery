@@ -5,11 +5,13 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 public abstract class Jeweler extends LinearOpMode {
 
     private boolean lookForRed = false;
+    private boolean isShort = false;
     private int color_threshold = 3;
     //private int hitBallDirection = Hardware.Direction_ReverseRight;
 
-    public Jeweler(boolean lookForRed) {
+    public Jeweler(boolean lookForRed, boolean isShort) {
         this.lookForRed = lookForRed;
+        this.isShort = isShort;
     }
 
     @Override
@@ -30,7 +32,7 @@ public abstract class Jeweler extends LinearOpMode {
 
         robot.sTs.setPosition(0.19);
 
-        while (opModeIsActive() && offset > 0.36) {
+        while (opModeIsActive() && offset > 0.35) {
             telemetry.addData("Red: ", robot.cs.red());
             telemetry.addData("Blu: ", robot.cs.blue());
             telemetry.update();
@@ -41,6 +43,8 @@ public abstract class Jeweler extends LinearOpMode {
         }
         robot.stepServo(robot.fTb, 0.39);
         robot.stepServo(robot.sTs, 0.63);
+
+        postJewel(robot);
     }
 
     public boolean hitJewel(Hardware robot, double init) {
@@ -76,6 +80,25 @@ public abstract class Jeweler extends LinearOpMode {
     }
 
     private void postJewel(Hardware robot) {
-        robot.drive(Hardware.Direction_Left, 0.7);
+        if(lookForRed) {
+            robot.drive(Hardware.Direction_Forward, 0.7);
+        } else {
+            robot.drive(Hardware.Direction_Reverse, 0.7);
+        }
+        robot.sleep(1000);
+        if(isShort) { // Robot goes to short cryptobox
+            return;
+        } else {  // Robot goes to far cryptobox
+            robot.drive(Hardware.Direction_Forward, 0.7);
+            robot.sleep(1000);
+            robot.drive(Hardware.Direction_Left, 0.7);
+            robot.sleep(500);
+            if(lookForRed) {
+                return;
+            } else {
+                robot.drive(Hardware.Direction_RotateLeft, 0.7);
+                robot.sleep(500);
+            }
+        }
     }
 }

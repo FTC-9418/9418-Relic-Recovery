@@ -24,12 +24,8 @@ public class Hardware {
     public DcMotor br = null; // Back Right motor
 
     // Cube Manipulator
-    public Servo   axis  = null; // Axis servo
-    public Servo   test  = null; // Test Servo
-    public Servo   ul    = null; // Upper Left servo
-    public Servo   ur    = null; // Upper Right servo
-    public Servo   ll    = null; // Lower Left servo
-    public Servo   lr    = null; // Lower Right servo
+    public Servo   gl    = null; // Grip Left servo
+    public Servo   gr    = null; // Grip Right servo
     public DcMotor slide = null; // Linear Slide motor
 
     // Jewel Manipulator
@@ -64,11 +60,8 @@ public class Hardware {
         bl = hwMap.dcMotor.get("BL");
 
         // Define and Initialize Cube Manipulator
-        axis  = hwMap.servo.get("AXIS");
-        ul    = hwMap.servo.get("UL");
-        ur    = hwMap.servo.get("UR");
-        ll    = hwMap.servo.get("LL");
-        lr    = hwMap.servo.get("LR");
+        gl    = hwMap.servo.get("GL");
+        gr    = hwMap.servo.get("GR");
         slide = hwMap.dcMotor.get("SLIDE");
 
         // Define and Initialize Linear Slide
@@ -153,7 +146,7 @@ public class Hardware {
 
     // Sets servos to go to mirrored position
     public void normalizeServo(Servo servo, double position) {
-        if(servo==ul || servo==ll){
+        if(servo==gl){
             servo.setPosition(position);
         }
         else {
@@ -161,51 +154,17 @@ public class Hardware {
         }
     }
 
-    // Grip from RELATIVE bottom of cube manipulator
-    public void bottomGrip(boolean active, double pos) {
-        boolean inverted = axis.getPosition() > 0.06 ? true : false;
+    // Grip cube manipulator
+    public void grip(boolean active, double pos) {
         if(active==true) {
-            if(inverted) {
-                normalizeServo(ul,0.01);
-                normalizeServo(ur,0.01);
-            } else {
-                normalizeServo(ll,0.01);
-                normalizeServo(lr,0.01);
-            }
+            normalizeServo(gl,0.01);
+            normalizeServo(gr,0.01);
         } else if(active==false) {
-            if(inverted) {
-                normalizeServo(ul,pos);
-                normalizeServo(ur,pos);
-            } else {
-                normalizeServo(ll,pos);
-                normalizeServo(lr,pos);
-            }
+            normalizeServo(gl,pos);
+            normalizeServo(gr,pos);
         }
     }
 
-    // Grip from RELATIVE top of cube manipulator
-    public void topGrip(boolean active, double pos) {
-        boolean inverted = axis.getPosition() > 0.06 ? true : false;
-        if(active==true) {
-            if(inverted) {
-                normalizeServo(ll,0.01);
-                normalizeServo(lr,0.01);
-            } else {
-                normalizeServo(ul,0.01);
-                normalizeServo(ur,0.01);
-            }
-        } else if(active==false) {
-            if(inverted) {
-                normalizeServo(lr,pos);
-                normalizeServo(ll,pos);
-            } else {
-                normalizeServo(ul,pos);
-                normalizeServo(ur,pos);
-            }
-        }
-    }
-
-    public final double NeutralAxisPos = 0.052;
     public final double NeutralSlideGrabPos = 1.0;
     public final double SlideGrabPos = 0.5;
     public final double NeutralSlideRotatePos = 1.0;
@@ -214,11 +173,8 @@ public class Hardware {
     // Sets servos to start position
     public void startServo() {
         // Set 0 position of cube manipulator servos
-        normalizeServo(ul, 0.7);
-        normalizeServo(ur, 0.65);
-        normalizeServo(ll, 0.65);
-        normalizeServo(lr, 0.7);
-        axis.setPosition(NeutralAxisPos);
+        normalizeServo(gl, 0.7);
+        normalizeServo(gr, 0.65);
 
         // Set 0 position of jewel manipulator servos
         fTb.setPosition(0.39); // 0 position
@@ -231,11 +187,8 @@ public class Hardware {
     // Sets servos to "natural" position
     public void naturalServo() {
         // Set 0 position of cube manipulator servos
-        normalizeServo(ul, 0.53);
-        normalizeServo(ur, 0.43);
-        normalizeServo(ll, 0.43);
-        normalizeServo(lr, 0.53);
-        axis.setPosition(NeutralAxisPos);
+        normalizeServo(gl, 0.53);
+        normalizeServo(gr, 0.43);
 
         sg.setPosition(NeutralSlideGrabPos);
         sr.setPosition(NeutralSlideRotatePos);

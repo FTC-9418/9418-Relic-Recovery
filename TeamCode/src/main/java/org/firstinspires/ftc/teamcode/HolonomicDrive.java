@@ -49,17 +49,13 @@ public class HolonomicDrive extends OpMode {
     public void loop() {
         setSpeed();
         drive();
-        spin();
         grip();
         slide();
         slideWinch();
         slideGrab();
         slideRotate();
-        telemetry.addData("Axis: ",        robot.axis.getPosition());
-        telemetry.addData("Upper Left: ",  robot.ul.getPosition());
-        telemetry.addData("Upper Right: ", robot.ur.getPosition());
-        telemetry.addData("Lower Left: ",  robot.ll.getPosition());
-        telemetry.addData("Lower Right: ", robot.lr.getPosition());
+        telemetry.addData("Grip Left: ",  robot.gl.getPosition());
+        telemetry.addData("Grip Right: ", robot.gr.getPosition());
     }
 
     double pwrRatio = 0.5;
@@ -100,19 +96,6 @@ public class HolonomicDrive extends OpMode {
         robot.drive(dir, pwr*pwr);
     }
 
-    public void spin() {
-        double home = robot.NeutralAxisPos;
-        double inverted = 0.121;
-
-        if(gamepad2.a) {
-            robot.axis.setPosition(home);
-        } else if(gamepad2.b) {
-            robot.axis.setPosition(inverted * 1.7);
-            robot.sleep(750);
-            robot.axis.setPosition(inverted);
-        }
-    }
-
     // Set button activity to false
     boolean xActive   = false;
     boolean yActive   = false;
@@ -124,10 +107,8 @@ public class HolonomicDrive extends OpMode {
     public void grip() {
 
         // Check the status of the buttons
-        boolean xCurrState = gamepad2.x;           // X current state
-        boolean yCurrState = gamepad2.y;           // Y current state
-        boolean dpUCurrState = gamepad2.dpad_up;   // dpad Up current state
-        boolean dpDCurrState = gamepad2.dpad_down; // dpad Down current state
+        boolean xCurrState = gamepad1.x;           // X current state
+        boolean yCurrState = gamepad1.y;           // Y current state
 
         // Check for button state transitions
         // Opens cube manipulator grippers wider
@@ -135,33 +116,23 @@ public class HolonomicDrive extends OpMode {
             // Button is transitioning to a pressed state
             xActive = !xActive;
             if (xActive == true) {
-                robot.bottomGrip(true, 0.2);
+                robot.grip(true, 0.2);
             } else {
-                robot.bottomGrip(false, 0.2);
+                robot.grip(false, 0.2);
             }
         } else if ((yCurrState == true) && (yCurrState != yPrevState)) {
             // Button is transitioning to a pressed state
             yActive = !yActive;
-            if (yActive == true) {
-                robot.topGrip(true, 0.2);
-            } else {
-                robot.topGrip(false, 0.2);
-            }
-        } else if (dpUCurrState == true) {
-            yActive = false;
-            robot.topGrip(false, 0.4);
-        } else if (dpDCurrState == true) {
-            xActive = false;
-            robot.bottomGrip(false, 0.4);
+            robot.grip(false, 0.4); // Grip Wide
         }
         xPrevState = xCurrState;
         yPrevState = yCurrState;
     }
 
     public void slide() {
-        if (gamepad2.right_bumper) {
+        if (gamepad1.right_bumper) {
             robot.slide.setPower(0.8);
-        } else if (gamepad2.left_bumper) {
+        } else if (gamepad1.left_bumper) {
             robot.slide.setPower(-0.5);
         } else {
             robot.slide.setPower(0);
@@ -169,9 +140,9 @@ public class HolonomicDrive extends OpMode {
     }
 
     public void slideWinch() {
-        if(gamepad2.dpad_right) {
+        if(gamepad1.dpad_right) {
             robot.sw.setPower(-1);
-        } else if(gamepad2.dpad_left) {
+        } else if(gamepad1.dpad_left) {
             robot.sw.setPower(1);
         } else {
             robot.sw.setPower(0);
@@ -179,7 +150,7 @@ public class HolonomicDrive extends OpMode {
     }
 
     public void slideGrab() {
-        if(gamepad2.right_trigger > 0.5) {
+        if(gamepad1.right_trigger > 0.5) {
             robot.sg.setPosition(robot.SlideGrabPos);
         } else {
             robot.sg.setPosition(robot.NeutralSlideGrabPos);
@@ -187,7 +158,7 @@ public class HolonomicDrive extends OpMode {
     }
 
     public void slideRotate() {
-        if(gamepad2.left_trigger > 0.5) {
+        if(gamepad1.left_trigger > 0.5) {
             robot.sr.setPosition(robot.SlideRotatePos);
         } else {
             robot.sr.setPosition(robot.NeutralSlideRotatePos);
